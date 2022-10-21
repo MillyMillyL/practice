@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useState } from "react";
+import useFetch from "../hooks/useFetch";
 import StuContext from "../store/StuContext";
 
 const StuForm = ({ stu, cancelHandler }) => {
@@ -20,52 +21,17 @@ const StuForm = ({ stu, cancelHandler }) => {
     Address: stu ? stu.attributes.Address : "",
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const addStu = useCallback(async (newStu) => {
-    try {
-      setError(null);
-      setLoading(true);
-      const res = await fetch("http://localhost:1337/api/students", {
-        method: "post",
-        body: JSON.stringify({ data: newStu }),
-        headers: {
-          "Content-type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        throw new Error("添加失败");
-      }
-      ctx.fetchData();
-    } catch (e) {
-      setError(e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const editStu = useCallback(async (id, newStu) => {
-    try {
-      setError(null);
-      setLoading(true);
-      const res = await fetch(`http://localhost:1337/api/students/${id}`, {
-        method: "put",
-        body: JSON.stringify({ data: newStu }),
-        headers: {
-          "Content-type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        throw new Error("修改失败");
-      }
-      ctx.fetchData();
-    } catch (e) {
-      setError(e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const {
+    loading,
+    error,
+    fetchData: addEditStu,
+  } = useFetch(
+    {
+      url: stu ? `students/${stu.id}` : "students",
+      method: stu ? "put" : "post",
+    },
+    ctx.fetchData
+  );
 
   return (
     <>
@@ -94,11 +60,11 @@ const StuForm = ({ stu, cancelHandler }) => {
         <td>
           {stu && (
             <>
-              <button onClick={() => editStu(stu.id, inputData)}>确认</button>
+              <button onClick={() => addEditStu(inputData)}>确认</button>
               <button onClick={cancelHandler}>取消</button>
             </>
           )}
-          {!stu && <button onClick={() => addStu(inputData)}>添加</button>}
+          {!stu && <button onClick={() => addEditStu(inputData)}>添加</button>}
         </td>
       </tr>
       {loading && (

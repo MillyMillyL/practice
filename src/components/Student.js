@@ -1,10 +1,9 @@
 import React, { useCallback, useContext, useState } from "react";
+import useFetch from "../hooks/useFetch";
 import StuContext from "../store/StuContext";
 import StuForm from "./StuForm";
 
 const Student = ({ stu }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const ctx = useContext(StuContext);
   const [isEdit, setIsEdit] = useState(false);
 
@@ -12,23 +11,17 @@ const Student = ({ stu }) => {
     setIsEdit(false);
   };
 
-  const deleteStudent = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await fetch(`http://localhost:1337/api/students/${stu.id}`, {
-        method: "delete",
-      });
-      ctx.fetchData();
-      if (!res.ok) {
-        throw new Error("删除失败");
-      }
-    } catch (e) {
-      setError(e);
-    } finally {
-      setLoading(false);
-    }
-  });
+  const {
+    loading,
+    error,
+    fetchData: deleteStu,
+  } = useFetch(
+    {
+      url: `students/${stu.id}`,
+      method: "delete",
+    },
+    ctx.fetchData
+  );
 
   return (
     <>
@@ -38,7 +31,7 @@ const Student = ({ stu }) => {
           <td>{stu.attributes.Gender}</td>
           <td>{stu.attributes.Address}</td>
           <td>
-            <button onClick={deleteStudent} value={stu.id}>
+            <button onClick={deleteStu} value={stu.id}>
               删除
             </button>
             <button onClick={() => setIsEdit(true)}>修改</button>

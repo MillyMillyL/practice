@@ -2,7 +2,7 @@ import React from "react";
 import Student from "./Student";
 import StuForm from "./StuForm";
 
-const StudentList = ({ stus, fetchData }) => {
+const StudentList = ({ stus }) => {
   return (
     <table>
       <thead>
