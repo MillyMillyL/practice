@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useState } from "react";
 import StuContext from "../store/StuContext";
 
-const StuForm = () => {
+const StuForm = ({ stu, cancelHandler }) => {
   const ctx = useContext(StuContext);
 
   const nameChangeHandler = (e) => {
@@ -15,21 +15,21 @@ const StuForm = () => {
   };
 
   const [inputData, setInputData] = useState({
-    Name: "",
-    Gender: "男",
-    Address: "",
+    Name: stu ? stu.attributes.Name : "",
+    Gender: stu ? stu.attributes.Gender : "男",
+    Address: stu ? stu.attributes.Address : "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const addStu = useCallback(async (inputData) => {
+  const addStu = useCallback(async (newStu) => {
     try {
       setError(null);
       setLoading(true);
       const res = await fetch("http://localhost:1337/api/students", {
         method: "post",
-        body: JSON.stringify({ data: inputData }),
+        body: JSON.stringify({ data: newStu }),
         headers: {
           "Content-type": "application/json",
         },
@@ -37,7 +37,28 @@ const StuForm = () => {
       if (!res.ok) {
         throw new Error("添加失败");
       }
-      console.log(res);
+      ctx.fetchData();
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const editStu = useCallback(async (id, newStu) => {
+    try {
+      setError(null);
+      setLoading(true);
+      const res = await fetch(`http://localhost:1337/api/students/${id}`, {
+        method: "put",
+        body: JSON.stringify({ data: newStu }),
+        headers: {
+          "Content-type": "application/json",
+        },
+      });
+      if (!res.ok) {
+        throw new Error("修改失败");
+      }
       ctx.fetchData();
     } catch (e) {
       setError(e);
@@ -71,7 +92,13 @@ const StuForm = () => {
         </td>
 
         <td>
-          <button onClick={() => addStu(inputData)}>添加</button>
+          {stu && (
+            <>
+              <button onClick={() => editStu(stu.id, inputData)}>确认</button>
+              <button onClick={cancelHandler}>取消</button>
+            </>
+          )}
+          {!stu && <button onClick={() => addStu(inputData)}>添加</button>}
         </td>
       </tr>
       {loading && (
